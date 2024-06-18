@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class BuscaCaminho {
 
@@ -70,9 +71,24 @@ public class BuscaCaminho {
                 System.out.println("Iterações:" + count + " | Melhor caminho:" + melhor_caminho);
             }
 
+            mutar(selec.get(0));
+
+
             count++;
         }
 
+    }
+
+    private void mutar(Caminho caminho) {
+        Random rand = new Random();
+        int i = rand.nextInt(caminho.caminho.size());
+        int j = rand.nextInt(caminho.caminho.size());
+        Collections.swap(caminho.caminho, i, j);
+        caminho.CalculaCaminho();
+    }
+
+    private void reproduzir(){
+        
     }
 
 
@@ -110,11 +126,11 @@ public class BuscaCaminho {
 
         public Caminho(LinkedList<Cidade> caminho){
             this.caminho = caminho;
-            caminhoVal = CalculaCaminho();
+            CalculaCaminho();
             
         }
 
-        private double CalculaCaminho(){
+        private void CalculaCaminho(){
             double lat_prev = -1;
             double long_prev = -1;
             double lat_cur = 0;
@@ -135,7 +151,7 @@ public class BuscaCaminho {
             long_cur = caminho.get(0).getLongitude();
 
             dist = dist + Math.sqrt(Math.pow(lat_cur - lat_prev, 2) + Math.pow(long_cur - long_prev, 2));
-            return dist;
+            caminhoVal = dist;
         }
 
     
