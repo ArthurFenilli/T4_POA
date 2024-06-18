@@ -10,11 +10,11 @@ import java.util.Random;
 
 public class BuscaCaminho {
 
-    private LinkedList<Cidade> cidades;
+    private ArrayList<Cidade> cidades;
     private double melhor_caminho;
 
     public BuscaCaminho(){
-        cidades = new LinkedList<>();
+        cidades = new ArrayList<>();
         melhor_caminho = Double.MAX_VALUE;
     }
 
@@ -45,8 +45,8 @@ public class BuscaCaminho {
 
     public void tracaCaminho(){
         int count = 0;
-        LinkedList<Cidade> cit_2 = new LinkedList<>(cidades);
-        LinkedList<Cidade> cit_3 = new LinkedList<>(cidades);
+        ArrayList<Cidade> cit_2 = new ArrayList<>(cidades);
+        ArrayList<Cidade> cit_3 = new ArrayList<>(cidades);
         Collections.shuffle(cit_2);
         Collections.shuffle(cit_3);
         Caminho c_1 = new Caminho(cidades);
@@ -81,10 +81,31 @@ public class BuscaCaminho {
 
     private void mutar(Caminho caminho) {
         Random rand = new Random();
-        int i = rand.nextInt(caminho.caminho.size());
-        int j = rand.nextInt(caminho.caminho.size());
-        Collections.swap(caminho.caminho, i, j);
+        for(int k = 0; k< 20; k++){
+            int i = rand.nextInt(caminho.caminho.size());
+            int j = rand.nextInt(caminho.caminho.size());
+            swap(caminho.caminho.get(i),caminho.caminho.get(j));
+        }
         caminho.CalculaCaminho();
+    }
+
+    private void swap(Cidade c1, Cidade c2){
+        String aux_nome;
+        double aux_latitude;
+        double aux_longitude;
+
+        aux_nome = c1.getNome();
+        aux_latitude = c1.getLatitude();
+        aux_longitude = c1.getLongitude();
+
+        c1.setNome(c2.getNome());
+        c1.setLatitude(c2.getLatitude());
+        c1.setLongitude(c2.getLongitude());
+
+        c2.setNome(aux_nome);
+        c2.setLatitude(aux_latitude);
+        c2.setLongitude(aux_longitude);
+
     }
 
     private void reproduzir(){
@@ -117,14 +138,26 @@ public class BuscaCaminho {
             return longitude;
         }
 
+        public void setNome(String nome){
+            this.nome = nome;
+        }
+
+        public void setLatitude(double latitude){
+            this.latitude = latitude;
+        }
+
+        public void setLongitude(double longitude){
+            this.longitude = longitude;
+        }
+
 
     }
 
     class Caminho implements Comparable<Caminho>{
         private double caminhoVal;
-        private LinkedList<Cidade> caminho; 
+        private ArrayList<Cidade> caminho; 
 
-        public Caminho(LinkedList<Cidade> caminho){
+        public Caminho (ArrayList<Cidade> caminho){
             this.caminho = caminho;
             CalculaCaminho();
             
