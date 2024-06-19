@@ -45,6 +45,7 @@ public class BuscaCaminho {
 
     public void tracaCaminho(){
         int count = 0;
+        int count_add = 0;
         ArrayList<Cidade> cit_2 = new ArrayList<>(cidades);
         ArrayList<Cidade> cit_3 = new ArrayList<>(cidades);
         Collections.shuffle(cit_2);
@@ -56,24 +57,35 @@ public class BuscaCaminho {
         System.out.println("Caminho 2:" + c_2.caminhoVal);
         System.out.println("Caminho 3:" + c_3.caminhoVal);
         ArrayList<Caminho> selec = new ArrayList<>();
-        selec.add(c_1);
-        selec.add(c_2);
+        //selec.add(c_1);
+        //selec.add(c_2);
         selec.add(c_3);
 
         while (true) {
 
             Collections.sort(selec);
+            if (selec.size() == 31) {
+                selec.remove(selec.size()-1);
+            }
 
             if(melhor_caminho > selec.get(0).caminhoVal){
                 melhor_caminho = selec.get(0).caminhoVal;
+                System.out.println("Iterações:" + count + " | Melhor caminho:" + melhor_caminho + " | Tamanho da população:" + selec.size());
+                System.out.println(c_1.caminhoVal);
+                count_add = 0;
             }
-            if(count %500 == 0){
-                System.out.println("Iterações:" + count + " | Melhor caminho:" + melhor_caminho);
+            if(count_add == 10000){
+                //ArrayList<Cidade> c = new ArrayList<>(selec.get(0).caminho);
+                //Caminho c_x = new Caminho(c);
+                //selec.add(c_x);
+                //count_add = 0;
+                //continue;
+            }
+            for (Caminho c  : selec) {
+                mutar2(c);   
             }
 
-            mutar(selec.get(0));
-
-
+            count_add++;
             count++;
         }
 
@@ -81,13 +93,35 @@ public class BuscaCaminho {
 
     private void mutar(Caminho caminho) {
         Random rand = new Random();
-        for(int k = 0; k< 20; k++){
-            int i = rand.nextInt(caminho.caminho.size());
-            int j = rand.nextInt(caminho.caminho.size());
-            swap(caminho.caminho.get(i),caminho.caminho.get(j));
+        int size = caminho.caminho.size();
+        int i = rand.nextInt(size);
+        int j = rand.nextInt(size);
+    
+        if (i > j) {
+            int temp = i;
+            i = j;
+            j = temp;
         }
+    
+        while (i < j) {
+            swap(caminho.caminho.get(i), caminho.caminho.get(j));
+            i++;
+            j--;
+        }
+    
         caminho.CalculaCaminho();
     }
+
+    private void mutar2(Caminho caminho){
+        Random rand = new Random();
+        int size = caminho.caminho.size();
+        int i = rand.nextInt(size);
+        int index = caminho.getMaiorIndex();
+        swap(caminho.caminho.get(index), caminho.caminho.get(i));
+        caminho.CalculaCaminho();
+    }
+    
+    
 
     private void swap(Cidade c1, Cidade c2){
         String aux_nome;
@@ -155,7 +189,8 @@ public class BuscaCaminho {
 
     class Caminho implements Comparable<Caminho>{
         private double caminhoVal;
-        private ArrayList<Cidade> caminho; 
+        private ArrayList<Cidade> caminho;
+        private int index_maior_distancia;
 
         public Caminho (ArrayList<Cidade> caminho){
             this.caminho = caminho;
@@ -169,15 +204,24 @@ public class BuscaCaminho {
             double lat_cur = 0;
             double long_cur = 0;
             double dist = 0;
+            double maior_dist = 0;
+            int count = 0;
+
 
             for(Cidade c : caminho){
                 lat_cur = c.getLatitude();
                 long_cur = c.getLongitude();
                 if(lat_prev != -1){
-                    dist = dist + Math.sqrt(Math.pow(lat_cur - lat_prev, 2) + Math.pow(long_cur - long_prev, 2));
+                    double dist_sum = Math.sqrt(Math.pow(lat_cur - lat_prev, 2) + Math.pow(long_cur - long_prev, 2));
+                    dist = dist + dist_sum;
+                    if(maior_dist <dist_sum){
+                        maior_dist = dist_sum;
+                        this.index_maior_distancia = count - 1;
+                    }
                 }
                 lat_prev = lat_cur;
                 long_prev = long_cur;
+                count++;
             }
 
             lat_cur = caminho.get(0).getLatitude();
@@ -197,6 +241,10 @@ public class BuscaCaminho {
                 return 1;
             }
             return 0;
+        }
+
+        public int getMaiorIndex(){
+            return index_maior_distancia;
         }
     }
 
