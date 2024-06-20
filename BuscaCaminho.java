@@ -4,8 +4,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+
 import java.util.Random;
 
 public class BuscaCaminho {
@@ -43,7 +42,14 @@ public class BuscaCaminho {
         }
     }
 
-    public void tracaCaminho(){
+    
+
+    public void tracaCaminho7() {
+        int troca = 0;
+        int mutation_boost = 0;
+        int population_survivors_count = 50;
+        int population_count = 150;
+        int count_add_analyse = 0;
         int count = 0;
         int count_add = 0;
         ArrayList<Cidade> cit_2 = new ArrayList<>(cidades);
@@ -53,43 +59,136 @@ public class BuscaCaminho {
         Caminho c_1 = new Caminho(cidades);
         Caminho c_2 = new Caminho(cit_2);
         Caminho c_3 = new Caminho(cit_3);
-        System.out.println("Caminho 1:" + c_1.caminhoVal);
-        System.out.println("Caminho 2:" + c_2.caminhoVal);
-        System.out.println("Caminho 3:" + c_3.caminhoVal);
+        System.out.println("Caminho 1:" + c_1.getCaminhoVal());
+        System.out.println("Caminho 2:" + c_2.getCaminhoVal());
+        System.out.println("Caminho 3:" + c_3.getCaminhoVal());
         ArrayList<Caminho> selec = new ArrayList<>();
-        //selec.add(c_1);
-        //selec.add(c_2);
+        selec.add(c_1);
+        selec.add(c_2);
         selec.add(c_3);
-
+        Caminho goat = new Caminho(cit_2);
+        ArrayList<Cidade> cit_x_prev  = cidades;
+        while (selec.size()< 300) {
+            ArrayList<Cidade> cit_x = new ArrayList<>(cit_x_prev);
+            Collections.shuffle(cit_x); 
+            Caminho c_x = new Caminho(cidades);
+            selec.add(c_x);
+            cit_x_prev = cit_x;
+        }
+    
         while (true) {
-
+    
             Collections.sort(selec);
-            if (selec.size() == 31) {
+            while (selec.size() >=  population_survivors_count + 1){
                 selec.remove(selec.size()-1);
             }
-
-            if(melhor_caminho > selec.get(0).caminhoVal){
-                melhor_caminho = selec.get(0).caminhoVal;
-                System.out.println("Iterações:" + count + " | Melhor caminho:" + melhor_caminho + " | Tamanho da população:" + selec.size());
-                System.out.println(c_1.caminhoVal);
+    
+            if(melhor_caminho > selec.get(0).getCaminhoVal()){
+                melhor_caminho = selec.get(0).getCaminhoVal();
+                goat.caminho = new ArrayList<>(selec.get(0).caminho);
+                System.out.println("Iteracoes:" + count + " | Melhor caminho:" + melhor_caminho + " | Tamanho da populacao:" + selec.size());
                 count_add = 0;
+                cidades = new ArrayList<Cidade>(selec.get(0).caminho);
+                troca = 0;
             }
-            if(count_add == 10000){
-                //ArrayList<Cidade> c = new ArrayList<>(selec.get(0).caminho);
-                //Caminho c_x = new Caminho(c);
-                //selec.add(c_x);
-                //count_add = 0;
+    
+            if(count_add == 25){
+                if(troca > 1){
+                    for(int i = 0; i<10; i++){
+                        mutar3(selec.get(i));
+                    }
+                }
+
+                
+                for(int i = 0; i<10; i++){
+                    mutar2(selec.get(i));
+                }
+                for(int i = 11; i<30; i++){
+                    mutar(selec.get(i));
+                }
+                for(int i = 31; i<selec.size(); i++){
+                    Collections.shuffle(selec.get(i).caminho);
+                    selec.get(i).CalculaCaminho();
+                }
+                System.out.println("Mutacao feita");
+                count_add = 0;
+                mutation_boost = (int) (population_count * 0.7);
+                count_add_analyse = count_add_analyse + mutation_boost;
+                population_count = population_count + 180;
+                population_survivors_count = population_survivors_count + 30;
+                selec.add(goat);
+                
                 //continue;
-            }
-            for (Caminho c  : selec) {
-                mutar2(c);   
+                troca++;
             }
 
+            for(int i = 0; i <count_add_analyse; i++){
+                Random rand = new Random();
+                int size = selec.size();
+                ArrayList<Cidade> random = new ArrayList<>(selec.get(rand.nextInt(size)).caminho);
+                Collections.shuffle(random);
+                Caminho c = new Caminho(random);
+                selec.add(c);
+            }
+    
+            
+            ArrayList<Caminho> nova_geracao = new ArrayList<>();
+        
+            while(nova_geracao.size() <population_count){
+                Random rand = new Random();
+                int size = selec.size();
+                Caminho parent1 = selec.get(rand.nextInt(size));
+                Caminho parent2 = selec.get(rand.nextInt(size));
+                Caminho child = crossover(parent1, parent2);
+                nova_geracao.add(child);
+            }
+            nova_geracao.add(goat);
+             
+           
+            
+            
+            
+            selec = nova_geracao;
+
+    
+            count_add_analyse = count_add_analyse - mutation_boost;
             count_add++;
             count++;
+            mutation_boost = 0;
         }
-
     }
+
+    private Caminho crossover(Caminho parent1, Caminho parent2) {
+        Random rand = new Random();
+        int size = parent1.getCaminho().size();
+        int start = rand.nextInt(size);
+        int end = rand.nextInt(size - start) + start;
+    
+        ArrayList<Cidade> childPath = new ArrayList<>(Collections.nCopies(size, null));
+    
+        for (int i = start; i <= end; i++) {
+            childPath.set(i, parent1.getCaminho().get(i));
+        }
+    
+
+        int currentIndex = 0;
+        for (int i = 0; i < size; i++) {
+            Cidade cidade = parent2.getCaminho().get(i);
+            if (!childPath.contains(cidade)) {
+                while (childPath.get(currentIndex) != null) {
+                    currentIndex++;
+                }
+                childPath.set(currentIndex, cidade);
+            }
+        }
+    
+        return new Caminho(childPath);
+    }
+
+
+    
+    
+    
 
     private void mutar(Caminho caminho) {
         Random rand = new Random();
@@ -118,6 +217,17 @@ public class BuscaCaminho {
         int i = rand.nextInt(size);
         int index = caminho.getMaiorIndex();
         swap(caminho.caminho.get(index), caminho.caminho.get(i));
+        caminho.CalculaCaminho();
+    }
+
+    private void mutar3(Caminho caminho) {
+        Random rand = new Random();
+        int size = caminho.caminho.size();
+        int i = rand.nextInt(size);
+        int j = rand.nextInt(size);
+    
+        swap(caminho.caminho.get(i), caminho.caminho.get(j));
+    
         caminho.CalculaCaminho();
     }
     
@@ -246,6 +356,28 @@ public class BuscaCaminho {
         public int getMaiorIndex(){
             return index_maior_distancia;
         }
+
+        public double getCaminhoVal() {
+            return caminhoVal;
+        }
+    
+        public void setCaminhoVal(double caminhoVal) {
+            this.caminhoVal = caminhoVal;
+        }
+    
+        public ArrayList<Cidade> getCaminho() {
+            return caminho;
+        }
+    
+        public void setCaminho(ArrayList<Cidade> caminho) {
+            this.caminho = caminho;
+            CalculaCaminho(); // Recalculate the path value when the path is set
+        }
+    
+        public int getIndexMaiorDistancia() {
+            return index_maior_distancia;
+        }
+    
     }
 
     private void listarCidades(){
@@ -256,8 +388,8 @@ public class BuscaCaminho {
 
     public static void main(String args[]){
         BuscaCaminho b = new BuscaCaminho();
-        b.leituraDeArquivo("data.txt");
-        b.tracaCaminho();
+        b.leituraDeArquivo(args[0]);
+        b.tracaCaminho7();
     }
 
 
